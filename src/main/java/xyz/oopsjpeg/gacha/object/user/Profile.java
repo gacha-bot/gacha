@@ -1,5 +1,7 @@
 package xyz.oopsjpeg.gacha.object.user;
 
+import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.User;
 import xyz.oopsjpeg.gacha.Gacha;
 import xyz.oopsjpeg.gacha.Util;
 import xyz.oopsjpeg.gacha.object.Card;
@@ -7,8 +9,6 @@ import xyz.oopsjpeg.gacha.object.Resources;
 import xyz.oopsjpeg.gacha.object.SavedObject;
 import xyz.oopsjpeg.gacha.object.data.ProfileData;
 import xyz.oopsjpeg.gacha.object.data.ResourcesData;
-import discord4j.common.util.Snowflake;
-import discord4j.core.object.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -268,14 +268,14 @@ public class Profile implements SavedObject
         return getBannerPityT4(id) >= 10;
     }
 
-    public void setVoteDate(LocalDateTime ldt)
-    {
-        data.voteDate = ldt.toString();
-    }
-
     public LocalDateTime getVoteDate()
     {
         return data.voteDate == null ? null : LocalDateTime.parse(data.voteDate);
+    }
+
+    public void setVoteDate(LocalDateTime ldt)
+    {
+        data.voteDate = ldt.toString();
     }
 
     public boolean hasVoted()

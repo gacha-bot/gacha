@@ -28,6 +28,7 @@ public class Expedition
 
     /**
      * Gets the duration of the Expedition
+     *
      * @return The duration, in hours
      */
     public long getDuration()

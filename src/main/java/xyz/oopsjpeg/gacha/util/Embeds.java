@@ -1,5 +1,7 @@
 package xyz.oopsjpeg.gacha.util;
 
+import discord4j.core.object.entity.User;
+import discord4j.core.spec.legacy.LegacyEmbedCreateSpec;
 import discord4j.rest.util.Color;
 import xyz.oopsjpeg.gacha.Gacha;
 import xyz.oopsjpeg.gacha.Util;
@@ -7,8 +9,6 @@ import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.Stats;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 import xyz.oopsjpeg.gacha.object.user.ProfileCard;
-import discord4j.core.object.entity.User;
-import discord4j.core.spec.legacy.LegacyEmbedCreateSpec;
 
 import java.util.function.Consumer;
 

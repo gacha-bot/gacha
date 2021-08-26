@@ -1,8 +1,8 @@
 package xyz.oopsjpeg.gacha;
 
-import xyz.oopsjpeg.gacha.util.BadSettingsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xyz.oopsjpeg.gacha.util.BadSettingsException;
 
 import java.io.File;
 import java.io.FileReader;

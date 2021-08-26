@@ -1,6 +1,5 @@
 package xyz.oopsjpeg.gacha.command;
 
-import xyz.oopsjpeg.gacha.Util;
 import discord4j.core.object.component.LayoutComponent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
@@ -10,6 +9,7 @@ import discord4j.core.spec.legacy.LegacyMessageCreateSpec;
 import discord4j.core.spec.legacy.LegacyMessageEditSpec;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+import xyz.oopsjpeg.gacha.Util;
 
 import java.io.InputStream;
 import java.util.function.Consumer;

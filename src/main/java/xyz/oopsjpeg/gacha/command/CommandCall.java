@@ -1,6 +1,5 @@
 package xyz.oopsjpeg.gacha.command;
 
-import xyz.oopsjpeg.gacha.Gacha;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.command.ApplicationCommandInteraction;
@@ -11,6 +10,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import xyz.oopsjpeg.gacha.Gacha;
 
 import java.util.Arrays;
 
