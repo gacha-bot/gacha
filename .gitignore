@@ -1,0 +1,13 @@
+# Maven
+../gachaold/target/
+
+# IntelliJ
+out/
+.idea/
+modules/
+*.iml
+
+# Gacha
+gacha.properties
+*.stable
+*.beta
