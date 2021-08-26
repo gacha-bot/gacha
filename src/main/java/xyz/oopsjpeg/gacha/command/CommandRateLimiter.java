@@ -8,6 +8,9 @@ import java.util.Map;
 
 public class CommandRateLimiter
 {
+    private static final int CYCLE_DURATION = 4;
+    private static final int COMMANDS_PER_CYCLE = 5;
+
     private final Map<String, Cycle> cycleMap = new HashMap<>();
 
     public Cycle getCycle(String id)
@@ -52,16 +55,16 @@ public class CommandRateLimiter
 
         public boolean isCycleComplete()
         {
-            return time == null || LocalDateTime.now().isAfter(time.plusSeconds(5));
+            return time == null || LocalDateTime.now().isAfter(time.plusSeconds(CYCLE_DURATION));
         }
 
         public boolean issueCommand()
         {
-            // If there's no last cycle or 5 seconds have past since it
+            // If there's no last cycle or X seconds have past since it
             if (isCycleComplete()) cycle();
 
-            // If less than 3 commands have been issued this cycle
-            if (commands < 3)
+            // If less than X commands have been issued this cycle
+            if (commands < COMMANDS_PER_CYCLE)
             {
                 commands++;
                 return true;
