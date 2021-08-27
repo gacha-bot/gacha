@@ -65,7 +65,8 @@ public class GachaServer
                 Vote vote = new Vote(gacha, data);
                 User user = vote.getUser();
 
-                Profile profile = gacha.hasProfile(user) ? gacha.getProfile(user) : gacha.registerProfile(user);
+                ProfileManager manager = gacha.getProfiles();
+                Profile profile = manager.has(user) ? manager.get(user) : manager.register(user);
                 profile.setVoteDate(LocalDateTime.now());
                 profile.getResources().addCrystals(2000);
                 profile.markForSave();

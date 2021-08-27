@@ -3,6 +3,7 @@ package xyz.oopsjpeg.gacha.object.user;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.User;
 import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.ProfileManager;
 import xyz.oopsjpeg.gacha.Util;
 import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.Resources;
@@ -16,27 +17,27 @@ import java.util.stream.Collectors;
 
 public class Profile implements SavedObject
 {
-    private final Gacha gacha;
+    private final ProfileManager manager;
     private final ProfileData data;
 
     private boolean markedForSave;
 
-    public Profile(Gacha gacha, ProfileData data)
+    public Profile(ProfileManager manager, ProfileData data)
     {
-        this.gacha = gacha;
+        this.manager = manager;
         this.data = data;
     }
 
-    public static Profile create(Gacha gacha, String id)
+    public static Profile create(ProfileManager manager, String id)
     {
         ProfileData data = new ProfileData();
         data.id = id;
-        return new Profile(gacha, data);
+        return new Profile(manager, data);
     }
 
-    public Gacha getGacha()
+    public ProfileManager getManager()
     {
-        return gacha;
+        return manager;
     }
 
     public ProfileData getData()
@@ -51,14 +52,14 @@ public class Profile implements SavedObject
 
     public User getUser()
     {
-        return gacha.getGateway().getUserById(Snowflake.of(getId())).block();
+        return manager.getGacha().getGateway().getUserById(Snowflake.of(getId())).block();
     }
 
     public Resources getResources()
     {
         if (data.resources == null)
             data.resources = new ResourcesData();
-        return new Resources(gacha, data.resources);
+        return new Resources(this, data.resources);
     }
 
     public void setResources(Resources resources)

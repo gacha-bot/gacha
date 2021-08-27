@@ -52,19 +52,6 @@ public class MongoManager
         return database.getCollection("profiles", ProfileData.class);
     }
 
-    public HashMap<String, Profile> fetchProfiles()
-    {
-        HashMap<String, Profile> profileMap = new HashMap<>();
-        // Add each user into the map by ID
-        getProfileCollection().find().forEach(data ->
-        {
-            Profile profile = new Profile(gacha, data);
-            logger.info("Fetched profile data for ID " + data.id);
-            profileMap.put(profile.getId(), profile);
-        });
-        return profileMap;
-    }
-
     public void saveProfiles(Collection<Profile> profiles)
     {
         logger.info("Saving " + profiles.size() + " profiles");

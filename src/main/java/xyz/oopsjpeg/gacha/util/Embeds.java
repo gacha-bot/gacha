@@ -16,7 +16,7 @@ public class Embeds
 {
     public static Consumer<LegacyEmbedCreateSpec> card(ProfileCard profileCard, Profile profile, String message)
     {
-        Gacha gacha = profile.getGacha();
+        Gacha gacha = profile.getManager().getGacha();
         Card card = profileCard.getCard();
         String avatar = profile.getUser().getAvatarUrl();
         Stats stats = profileCard.getStats();
@@ -39,11 +39,11 @@ public class Embeds
 
     public static Consumer<LegacyEmbedCreateSpec> card(ProfileCard card, User user, String message)
     {
-        return card(card, card.getGacha().getProfile(user), message);
+        return card(card, card.getProfile().getManager().getGacha().getProfiles().get(user), message);
     }
 
     public static Consumer<LegacyEmbedCreateSpec> card(ProfileCard card, User user)
     {
-        return card(card, card.getGacha().getProfile(user), null);
+        return card(card, card.getProfile().getManager().getGacha().getProfiles().get(user), null);
     }
 }

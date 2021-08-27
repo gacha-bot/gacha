@@ -46,11 +46,6 @@ public class ProfileCard
         return data;
     }
 
-    public Gacha getGacha()
-    {
-        return profile.getGacha();
-    }
-
     public String getId()
     {
         return data.id;
@@ -58,7 +53,7 @@ public class ProfileCard
 
     public Card getCard()
     {
-        return getGacha().getCards().get(data.id);
+        return getProfile().getManager().getGacha().getCards().get(data.id);
     }
 
     public String getName()

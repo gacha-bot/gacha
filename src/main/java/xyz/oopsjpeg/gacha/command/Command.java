@@ -58,7 +58,7 @@ public enum Command
                     MessageChannel channel = call.getChannel();
                     User user = call.getUser();
                     Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
                     List<ProfileCard> cards = profile.getCards();
 
                     ProfileCard displayCard = profile.hasFavoriteCard() ? profile.getFavoriteCard() : profile.getBestCard();
@@ -103,10 +103,10 @@ public enum Command
                     MessageChannel channel = call.getChannel();
                     User user = call.getUser();
 
-                    if (gacha.hasProfile(user))
+                    if (gacha.getProfiles().has(user))
                         return Replies.failure("You already created a profile.");
 
-                    gacha.registerProfile(user).markForSave();
+                    gacha.getProfiles().register(user).markForSave();
 
                     return new Reply().setEmbed(e -> e
                             .setTitle("You're now registered to play Gacha!")
@@ -126,7 +126,7 @@ public enum Command
                 {
                     Gacha gacha = call.getGacha();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!call.hasArguments())
                     {
@@ -161,7 +161,7 @@ public enum Command
                 {
                     User user = call.getUser();
                     Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
@@ -208,7 +208,7 @@ public enum Command
                 {
                     Gacha gacha = call.getGacha();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
@@ -237,7 +237,7 @@ public enum Command
                     MessageChannel channel = call.getChannel();
                     User user = call.getUser();
                     Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
@@ -300,7 +300,7 @@ public enum Command
                 {
                     Gacha gacha = call.getGacha();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
                     Banner banner = gacha.getBanners().get("SEKAI"); // TODO Add selection when more banners are available
 
                     if (profile.getResources().getCrystals() < banner.getCost())
@@ -362,7 +362,7 @@ public enum Command
                 {
                     Gacha gacha = call.getGacha();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!profile.hasDaily())
                         return Replies.failure("Your **Daily** is available in " + profile.timeUntilDaily() + ".");
@@ -382,7 +382,7 @@ public enum Command
                 {
                     Gacha gacha = call.getGacha();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfile(user);
+                    Profile profile = gacha.getProfiles().get(user);
 
                     if (!profile.hasWeekly())
                         return Replies.failure("Your **Weekly** is available in " + profile.timeUntilWeekly() + ".");
@@ -403,7 +403,7 @@ public enum Command
                     if (!call.getUser().getId().equals(Snowflake.of(92296992004272128L)))
                         return Replies.failure("No");
 
-                    call.getGacha().getProfilesAsList().forEach(p ->
+                    call.getGacha().getProfiles().allAsList().forEach(p ->
                     {
                         p.getResources().addCrystals(25000);
                         p.markForSave();
@@ -451,7 +451,7 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Profile profile = call.getGacha().getProfile(call.getUser());
+                    Profile profile = call.getGacha().getProfiles().get(call.getUser());
                     Card card = call.getGacha().getCards().findOne(call.getArgumentsRaw());
                     try
                     {
@@ -471,7 +471,7 @@ public enum Command
     //            {
     //                User user = call.getUser();
     //                Gacha gacha = call.getGacha();
-    //                Profile profile = gacha.getProfile(user);
+    //                Profile profile = gacha.getProfiles().get(user);
 //
     //                if (!profile.hasCards())
     //                    return Replies.failure("You don't have any cards.");
@@ -551,7 +551,7 @@ public enum Command
         if (developerOnly && !user.equals(call.getGateway().getApplicationInfo().flatMap(ApplicationInfo::getOwner).block()))
             return Replies.failure("You're not a developer.");
         // Registered only
-        if (registeredOnly && !call.getGacha().hasProfile(user))
+        if (registeredOnly && !call.getGacha().getProfiles().has(user))
             return Replies.failure("You're not registered yet. Use `" + call.format(Command.REGISTER) + "` to create a profile.");
 
         return execute(call);
@@ -564,7 +564,7 @@ public enum Command
         GatewayDiscordClient client = gacha.getGateway();
         User owner = client.getApplicationInfo().flatMap(ApplicationInfo::getOwner).block();
 
-        return (!registeredOnly || gacha.hasProfile(user)) && (!developerOnly || user.equals(owner));
+        return (!registeredOnly || gacha.getProfiles().has(user)) && (!developerOnly || user.equals(owner));
     }
 
     public ApplicationCommandRequest app()

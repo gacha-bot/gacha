@@ -67,7 +67,7 @@ public class Card
 
     public BufferedImage getImage() throws IOException
     {
-        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "\\cards\\" + getImageRaw() + ".png"));
+        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "cards/images/" + getImageRaw() + ".png"));
     }
 
     public String getImageRaw()
@@ -107,7 +107,7 @@ public class Card
 
     public BufferedImage getFrame() throws IOException
     {
-        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "\\frames\\" + getFrameRaw() + ".png"));
+        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "frames/" + getFrameRaw() + ".png"));
     }
 
     public String getFrameRaw()

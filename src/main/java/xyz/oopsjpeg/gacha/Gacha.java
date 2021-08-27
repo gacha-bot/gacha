@@ -6,7 +6,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
-import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.Intent;
@@ -22,10 +22,6 @@ import xyz.oopsjpeg.gacha.util.Constants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,8 +36,6 @@ public class Gacha
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
-    private final Map<String, Profile> profileMap = new HashMap<>();
-
     private Settings settings;
     private GatewayDiscordClient gateway;
     private GachaServer server;
@@ -50,6 +44,7 @@ public class Gacha
     private SeriesManager series;
     private CardManager cards;
     private BannerManager banners;
+    private ProfileManager profiles;
 
     public static void main(String[] args) throws BadSettingsException, IOException
     {
@@ -103,16 +98,18 @@ public class Gacha
                         banners = new BannerManager(this);
                         banners.fetch();
 
-                        logger.info("Loading profiles");
-                        profileMap.putAll(mongo.fetchProfiles());
-                        logger.info("Loaded " + profileMap.size() + " profiles");
+                        logger.info("Loading profile manager");
+                        profiles = new ProfileManager(this);
+                        profiles.fetch();
 
                         logger.info("Starting server");
                         server = new GachaServer(this, 8000);
                         server.start();
 
                         logger.info("Creating automatic data saver");
-                        scheduler.scheduleAtFixedRate(() -> profileMap.values().stream().filter(Profile::isMarkedForSave).forEach(mongo::saveProfile), 5, 5, TimeUnit.MINUTES);
+                        scheduler.scheduleAtFixedRate(() -> profiles.allAsList().stream()
+                                .filter(Profile::isMarkedForSave)
+                                .forEach(mongo::saveProfile), 5, 5, TimeUnit.MINUTES);
 
                         logger.info("Creating status updater");
                         scheduler.scheduleAtFixedRate(() -> gateway
@@ -139,7 +136,7 @@ public class Gacha
                 logger.info("Logging out");
                 gateway.logout().subscribe();
                 logger.info("Saving data");
-                profileMap.values().stream()
+                profiles.allAsList().stream()
                         .filter(Profile::isMarkedForSave)
                         .forEach(mongo::saveProfile);
             }
@@ -187,40 +184,6 @@ public class Gacha
         return mongo;
     }
 
-    public Profile registerProfile(String id)
-    {
-        Profile profile = Profile.create(this, id);
-        profile.getResources().addCrystals(Constants.STARTING_CRYSTALS);
-        profile.markForSave();
-        profileMap.put(id, profile);
-        return profile;
-    }
-
-    public Profile registerProfile(User user)
-    {
-        return registerProfile(user.getId().asString());
-    }
-
-    public List<Profile> getProfilesAsList()
-    {
-        return new ArrayList<>(profileMap.values());
-    }
-
-    public Profile getProfile(User user)
-    {
-        return getProfile(user.getId().asString());
-    }
-
-    public Profile getProfile(String id)
-    {
-        return profileMap.getOrDefault(id, null);
-    }
-
-    public boolean hasProfile(User user)
-    {
-        return profileMap.containsKey(user.getId().asString());
-    }
-
     public CardManager getCards()
     {
         return cards;
@@ -234,5 +197,10 @@ public class Gacha
     public SeriesManager getAllSeries()
     {
         return series;
+    }
+
+    public ProfileManager getProfiles()
+    {
+        return profiles;
     }
 }
