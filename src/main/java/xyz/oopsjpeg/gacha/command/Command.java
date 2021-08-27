@@ -94,29 +94,6 @@ public enum Command
                     return result;
                 }
             },
-    REGISTER("register", "Create a new Gacha profile.")
-            {
-                @Override
-                public Reply execute(CommandCall call)
-                {
-                    Gacha gacha = call.getGacha();
-                    MessageChannel channel = call.getChannel();
-                    User user = call.getUser();
-
-                    if (gacha.getProfiles().has(user))
-                        return Replies.failure("You already created a profile.");
-
-                    gacha.getProfiles().register(user).markForSave();
-
-                    return new Reply().setEmbed(e -> e
-                            .setTitle("You're now registered to play Gacha!")
-                            .setDescription("Check your profile with `" + call.format(PROFILE) + "`."
-                                    + "\nPull a new card with `" + call.format(PULL) + "`."
-                                    + "\nCollect a daily reward with `" + call.format(DAILY) + "`."
-                                    + "\n\nHave fun!")
-                            .setColor(Util.getColor(user, channel)));
-                }
-            },
     DESCRIPTION("description", "Update your profile description.")
             {
                 private static final int MAX_LENGTH = 200;
@@ -505,35 +482,21 @@ public enum Command
         //HELP.aliases = new String[]{"?", "about"};
 
         //PROFILE.aliases = new String[]{"account", "bal", "balance"};
-        PROFILE.registeredOnly = true;
 
         //DESCRIPTION.aliases = new String[]{"desc", "bio"};
-        DESCRIPTION.registeredOnly = true;
-
-        FAVORITE.registeredOnly = true;
 
         //CARD.aliases = new String[]{"show", "summon", "sum"};
-        CARD.registeredOnly = true;
-
-        CARDS.registeredOnly = true;
 
         //PULL.aliases = new String[]{"gacha"};
-        PULL.registeredOnly = true;
-
-        DAILY.registeredOnly = true;
-
-        WEEKLY.registeredOnly = true;
 
         GIVE_CRYSTALS.developerOnly = true;
 
         TESTCARD.developerOnly = true;
-        TESTCARD.registeredOnly = true;
     }
 
     private final String name;
     private final String description;
     private boolean developerOnly;
-    private boolean registeredOnly;
 
     Command(String name, String description)
     {
@@ -550,21 +513,8 @@ public enum Command
         // Developer only
         if (developerOnly && !user.equals(call.getGateway().getApplicationInfo().flatMap(ApplicationInfo::getOwner).block()))
             return Replies.failure("You're not a developer.");
-        // Registered only
-        if (registeredOnly && !call.getGacha().getProfiles().has(user))
-            return Replies.failure("You're not registered yet. Use `" + call.format(Command.REGISTER) + "` to create a profile.");
 
         return execute(call);
-    }
-
-    public boolean canExecute(CommandCall call)
-    {
-        Gacha gacha = call.getGacha();
-        User user = call.getUser();
-        GatewayDiscordClient client = gacha.getGateway();
-        User owner = client.getApplicationInfo().flatMap(ApplicationInfo::getOwner).block();
-
-        return (!registeredOnly || gacha.getProfiles().has(user)) && (!developerOnly || user.equals(owner));
     }
 
     public ApplicationCommandRequest app()
@@ -594,10 +544,5 @@ public enum Command
     public boolean isDeveloperOnly()
     {
         return developerOnly;
-    }
-
-    public boolean isRegisteredOnly()
-    {
-        return registeredOnly;
     }
 }

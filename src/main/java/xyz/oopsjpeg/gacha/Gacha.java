@@ -16,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import xyz.oopsjpeg.gacha.command.Command;
 import xyz.oopsjpeg.gacha.command.CommandManager;
 import xyz.oopsjpeg.gacha.manager.MongoManager;
+import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 import xyz.oopsjpeg.gacha.util.BadSettingsException;
 import xyz.oopsjpeg.gacha.util.Constants;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -98,7 +100,7 @@ public class Gacha
                         banners = new BannerManager(this);
                         banners.fetch();
 
-                        logger.info("Loading profile manager");
+                        logger.info("Creating profile manager");
                         profiles = new ProfileManager(this);
                         profiles.fetch();
 

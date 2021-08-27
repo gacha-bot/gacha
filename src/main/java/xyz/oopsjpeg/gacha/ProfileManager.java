@@ -31,9 +31,8 @@ public class ProfileManager
         return gacha;
     }
 
-    public Profile register(User user)
+    private Profile register(String id)
     {
-        String id = user.getId().asString();
         Profile profile = Profile.create(this, id);
         profile.getResources().addCrystals(Constants.STARTING_CRYSTALS);
         profile.markForSave();
@@ -43,6 +42,8 @@ public class ProfileManager
 
     public Profile get(String id)
     {
+        if (!profileMap.containsKey(id))
+            return register(id);
         return profileMap.getOrDefault(id, null);
     }
 
