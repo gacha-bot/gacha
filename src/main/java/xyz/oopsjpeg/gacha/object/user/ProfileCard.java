@@ -68,6 +68,11 @@ public class ProfileCard
         return getCard().getName();
     }
 
+    public String getFullName()
+    {
+        return getCard().getFullName();
+    }
+
     //public boolean hasAltImage()
     //{
     //    return card().hasAltImage();

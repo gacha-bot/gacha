@@ -10,6 +10,9 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.EmojiData;
 import xyz.oopsjpeg.gacha.Core;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 
@@ -21,16 +24,18 @@ public class CommandCall
     private final String alias;
     private final String[] arguments;
 
+    private final Snowflake messageId;
     private final Snowflake guildId;
     private final Snowflake channelId;
     private final Snowflake userId;
 
-    public CommandCall(CommandManager manager, String alias, String[] arguments, Guild guild, MessageChannel channel, User user)
+    public CommandCall(CommandManager manager, String alias, String[] arguments, Message message, Guild guild, MessageChannel channel, User user)
     {
         this.manager = manager;
         this.alias = alias;
         this.arguments = arguments;
 
+        messageId = message == null ? null : message.getId();
         guildId = guild == null ? null : guild.getId();
         channelId = channel == null ? null : channel.getId();
         userId = user == null ? null : user.getId();
@@ -52,7 +57,7 @@ public class CommandCall
             {
                 String alias = split[0].replaceFirst(manager.getPrefix(), "");
                 String[] args = Arrays.copyOfRange(split, 1, split.length);
-                return new CommandCall(manager, alias, args, guild, channel, user);
+                return new CommandCall(manager, alias, args, message, guild, channel, user);
             }
         }
 
@@ -71,7 +76,7 @@ public class CommandCall
         MessageChannel channel = interaction.getChannel().block();
         User user = interaction.getUser();
 
-        return new CommandCall(manager, alias, args, guild, channel, user);
+        return new CommandCall(manager, alias, args, null, guild, channel, user);
     }
 
     public String format(Command command)
@@ -124,6 +129,11 @@ public class CommandCall
         return String.join(" ", getArguments());
     }
 
+    public Message getMessage()
+    {
+        return getGateway().getMessageById(channelId, messageId).block();
+    }
+
     public Guild getGuild()
     {
         return getGateway().getGuildById(guildId).block();
@@ -147,5 +157,25 @@ public class CommandCall
     public Member getMember()
     {
         return getUser().asMember(guildId).block();
+    }
+
+    public void reply(MessageCreateSpec spec)
+    {
+        reply(spec, getChannel());
+    }
+
+    public void reply(MessageCreateSpec spec, MessageChannel channel)
+    {
+        if (messageId != null)
+            spec = spec.withMessageReference(messageId);
+        channel.createMessage(spec).subscribe();
+    }
+
+    public void confirm(String s)
+    {
+        if (messageId != null)
+            getMessage().addReaction(ReactionEmoji.unicode("\u2705")).subscribe();
+        else
+            reply(Replies.success(s).build());
     }
 }

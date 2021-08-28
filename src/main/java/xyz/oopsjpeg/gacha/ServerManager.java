@@ -65,8 +65,8 @@ public class ServerManager implements Manager
                 profile.getResources().addCrystals(2000);
                 profile.markForSave();
 
-                MessageChannel channel = user.getPrivateChannel().block();
-                Replies.success("Thanks for voting! You can vote again in 12 hours.").create(user, channel, null);
+                MessageChannel pc = user.getPrivateChannel().block();
+                pc.createMessage(Replies.success("Thanks for voting! You can vote again in 12 hours.").build()).subscribe();
             }
 
             t.sendResponseHeaders(200, 0);

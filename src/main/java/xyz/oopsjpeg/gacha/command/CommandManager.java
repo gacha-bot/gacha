@@ -6,7 +6,6 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import xyz.oopsjpeg.gacha.Core;
 import xyz.oopsjpeg.gacha.Manager;
-import xyz.oopsjpeg.gacha.ObjectManager;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,16 +43,10 @@ public class CommandManager implements Manager
 
         if (command == null) return;
 
-        Reply reply = null;
-
         if (rateLimiter.issueCommand(user))
-            reply = command.tryExecute(call);
+            command.tryExecute(call);
         else if (rateLimiter.warn(user))
-            reply = Replies.failure("Slow down!");
-
-        if (reply == null) return;
-
-        reply.create(user, channel, message);
+            channel.createMessage(Replies.failure("Slow down!").build()).subscribe();
     }
 
     // private void onSlashCommand(SlashCommandEvent ev)

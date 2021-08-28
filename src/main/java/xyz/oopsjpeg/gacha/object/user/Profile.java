@@ -132,7 +132,7 @@ public class Profile implements SavedObject
 
     public boolean hasCards()
     {
-        return data.cards.isEmpty();
+        return !data.cards.isEmpty();
     }
 
     public ProfileCard getCard(Card card)
