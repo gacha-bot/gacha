@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-Main-Class: xyz.oopsjpeg.gacha.Gacha
+Main-Class: xyz.oopsjpeg.core.Core

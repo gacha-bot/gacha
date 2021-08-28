@@ -6,7 +6,6 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.guild.GuildCreateEvent;
 import discord4j.core.event.domain.lifecycle.ReadyEvent;
-import discord4j.core.object.entity.Guild;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.Intent;
@@ -16,45 +15,42 @@ import org.slf4j.LoggerFactory;
 import xyz.oopsjpeg.gacha.command.Command;
 import xyz.oopsjpeg.gacha.command.CommandManager;
 import xyz.oopsjpeg.gacha.manager.MongoManager;
-import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 import xyz.oopsjpeg.gacha.util.BadSettingsException;
 import xyz.oopsjpeg.gacha.util.Constants;
 
-import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Gacha
+public class Core
 {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static final String SETTINGS_FILE = "gacha.properties";
 
-    private static Gacha instance;
+    private static Core instance;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
     private Settings settings;
     private GatewayDiscordClient gateway;
-    private GachaServer server;
+    private ServerManager server;
     private MongoManager mongo;
     private CommandManager commands;
     private SeriesManager series;
     private CardManager cards;
-    private BannerManager banners;
     private ProfileManager profiles;
 
     public static void main(String[] args) throws BadSettingsException, IOException
     {
-        instance = new Gacha();
+        instance = new Core();
         instance.start();
     }
 
-    public static Gacha getInstance()
+    public static Core instance()
     {
         return instance;
     }
@@ -96,16 +92,12 @@ public class Gacha
                         cards = new CardManager(this);
                         cards.fetch();
 
-                        logger.info("Creating banner manager");
-                        banners = new BannerManager(this);
-                        banners.fetch();
-
                         logger.info("Creating profile manager");
                         profiles = new ProfileManager(this);
                         profiles.fetch();
 
                         logger.info("Starting server");
-                        server = new GachaServer(this, 8000);
+                        server = new ServerManager(this, 8000);
                         server.start();
 
                         logger.info("Creating automatic data saver");
@@ -191,12 +183,7 @@ public class Gacha
         return cards;
     }
 
-    public BannerManager getBanners()
-    {
-        return banners;
-    }
-
-    public SeriesManager getAllSeries()
+    public SeriesManager getSeries()
     {
         return series;
     }

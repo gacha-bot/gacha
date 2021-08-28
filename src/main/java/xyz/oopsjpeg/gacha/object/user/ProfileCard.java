@@ -1,8 +1,10 @@
 package xyz.oopsjpeg.gacha.object.user;
 
 import discord4j.core.object.entity.User;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
+import xyz.oopsjpeg.gacha.object.Archetype;
 import xyz.oopsjpeg.gacha.object.Card;
+import xyz.oopsjpeg.gacha.object.Series;
 import xyz.oopsjpeg.gacha.object.Stats;
 import xyz.oopsjpeg.gacha.object.data.ProfileCardData;
 
@@ -31,6 +33,11 @@ public class ProfileCard
         return new ProfileCard(profile, data);
     }
 
+    public Core getCore()
+    {
+        return profile.getCore();
+    }
+
     public Profile getProfile()
     {
         return profile;
@@ -53,7 +60,7 @@ public class ProfileCard
 
     public Card getCard()
     {
-        return getProfile().getManager().getGacha().getCards().get(data.id);
+        return getCore().getCards().get(data.id);
     }
 
     public String getName()
@@ -63,7 +70,7 @@ public class ProfileCard
 
     //public boolean hasAltImage()
     //{
-    //    return getCard().hasAltImage();
+    //    return card().hasAltImage();
     //}
 
     public int getTier()
@@ -86,14 +93,14 @@ public class ProfileCard
         return data.level;
     }
 
-    public void setLevel(int level)
+    public void setLevel(int l)
     {
-        data.level = level;
+        data.level = l;
     }
 
-    public void addLevels(int levels)
+    public void addLevels(int l)
     {
-        setLevel(getLevel() + levels);
+        setLevel(getLevel() + l);
     }
 
     public int getXp()
@@ -132,16 +139,6 @@ public class ProfileCard
         return (int) (200 + (Math.pow(getLevel() * 125, 1.03)));
     }
 
-    //public boolean isFlipped()
-    //{
-    //    return data.flipped;
-    //}
-
-    //public void setFlipped(boolean f)
-    //{
-    //    data.flipped = f;
-    //}
-
     public String format()
     {
         return getCard().format() + " [`LV " + (getLevel() + 1) + "`]";
@@ -164,12 +161,17 @@ public class ProfileCard
 
     public Color getFrameColor()
     {
-        return getCard().getFrameColor(); //isFlipped() ? getCard().getAltFrameColor() : getCard().getFrameColor();
+        return getCard().getFrameColor();
     }
 
     public Color getFontColor()
     {
         return getCard().getFontColor();
+    }
+
+    public String getImageRaw()
+    {
+        return getCard().getImageRaw();
     }
 
     public String getVariant()
@@ -180,5 +182,15 @@ public class ProfileCard
     public boolean hasVariant()
     {
         return getCard().hasVariant();
+    }
+
+    public Series getSeries()
+    {
+        return getCard().getSeries();
+    }
+
+    public Archetype getArchetype()
+    {
+        return getCard().getArchetype();
     }
 }

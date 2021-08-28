@@ -5,8 +5,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xyz.oopsjpeg.gacha.command.Replies;
 import xyz.oopsjpeg.gacha.object.Vote;
 import xyz.oopsjpeg.gacha.object.data.VoteData;
@@ -17,41 +15,38 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 
-public class GachaServer
+public class ServerManager implements Manager
 {
-    private static final Logger logger = LoggerFactory.getLogger(GachaServer.class);
-
-    private final Gacha gacha;
+    private final Core core;
     private final int port;
 
     private HttpServer server;
 
-    public GachaServer(Gacha gacha, int port)
+    public ServerManager(Core core, int port)
     {
-        this.gacha = gacha;
+        this.core = core;
         this.port = port;
     }
 
-    public final GachaServer start() throws IOException
+    public void start() throws IOException
     {
         server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/vote", new VoteHandler());
         server.setExecutor(null);
         server.start();
 
-        logger.info("Server listening at http://localhost:" + port);
-
-        return this;
+        getLogger().info("Server listening at http://localhost:" + port);
     }
 
-    public Gacha getGacha()
-    {
-        return gacha;
-    }
-
-    public int getPort()
+    public int port()
     {
         return port;
+    }
+
+    @Override
+    public Core getCore()
+    {
+        return core;
     }
 
     class VoteHandler implements HttpHandler
@@ -61,12 +56,11 @@ public class GachaServer
         {
             try (InputStreamReader isr = new InputStreamReader(t.getRequestBody());)
             {
-                VoteData data = Gacha.GSON.fromJson(isr, VoteData.class);
-                Vote vote = new Vote(gacha, data);
+                VoteData data = Core.GSON.fromJson(isr, VoteData.class);
+                Vote vote = new Vote(core, data);
                 User user = vote.getUser();
 
-                ProfileManager manager = gacha.getProfiles();
-                Profile profile = manager.get(user);
+                Profile profile = core.getProfiles().get(user);
                 profile.setVoteDate(LocalDateTime.now());
                 profile.getResources().addCrystals(2000);
                 profile.markForSave();

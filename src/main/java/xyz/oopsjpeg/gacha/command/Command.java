@@ -1,15 +1,14 @@
 package xyz.oopsjpeg.gacha.command;
 
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import xyz.oopsjpeg.gacha.Gacha;
+import discord4j.rest.util.Color;
+import xyz.oopsjpeg.gacha.Core;
 import xyz.oopsjpeg.gacha.Util;
-import xyz.oopsjpeg.gacha.object.Banner;
 import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 import xyz.oopsjpeg.gacha.object.user.ProfileCard;
@@ -23,12 +22,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Command interface.
- * Created by oopsjpeg on 1/30/2019.
- */
+import static java.time.DayOfWeek.SATURDAY;
+import static java.time.DayOfWeek.SUNDAY;
+import static java.time.temporal.TemporalAdjusters.nextOrSame;
+import static java.time.temporal.TemporalAdjusters.previousOrSame;
+
 public enum Command
 {
     HELP("help", "View helpful information about Gacha.")
@@ -36,10 +37,6 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    MessageChannel channel = call.getChannel();
-                    User user = call.getUser();
-                    User self = call.getGateway().getSelf().block();
-
                     return new Reply().setEmbed(e -> e
                             .setTitle("Gacha Commands")
                             .setDescription(Arrays.stream(Command.values())
@@ -55,21 +52,20 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
+                    Core core = call.getCore();
                     MessageChannel channel = call.getChannel();
-                    User user = call.getUser();
-                    Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = call.getProfile();
                     List<ProfileCard> cards = profile.getCards();
 
                     ProfileCard displayCard = profile.hasFavoriteCard() ? profile.getFavoriteCard() : profile.getBestCard();
 
-                    Reply result = new Reply().setEmbed(e ->
+                    return new Reply().setEmbed(e ->
                     {
-                        e.setAuthor(user.getUsername() + " (" + Util.stars(profile.getTier()) + ")", null, user.getAvatarUrl());
-                        e.setColor(Util.getColor(user, channel));
+                        e.setAuthor(profile.getUsername() + " (" + Util.stars(profile.getTier()) + ")", null, profile.getAvatarUrl());
+                        e.setColor(Util.getDisplayColor(profile, channel));
                         // Display Card Thumbnail
                         if (displayCard != null)
-                            e.setThumbnail(gacha.getSettings().getDataUrl() + "cards/images/" + displayCard.getCard().getImageRaw() + ".png");
+                            e.setThumbnail(core.getSettings().getDataUrl() + "cards/images/" + displayCard.getImageRaw() + ".png");
                         // Description
                         e.setDescription(profile.getDescription());
                         // Resources
@@ -78,20 +74,18 @@ public enum Command
                                 + "\n" + Util.sticker("Violet Runes", Util.violetRunes(profile.getResources().getVioletRunes())), false);
                         // Cards
                         int cardsOwned = cards.size();
-                        int cardsTotal = gacha.getCards().total();
+                        int cardsTotal = core.getCards().size();
                         float percentOwned = (float) cardsOwned / cardsTotal;
                         e.addField("Cards", Util.comma(cardsOwned) + " / " + Util.comma(cardsTotal) + " (" + Util.percent(percentOwned) + ")", true);
                         // Timelies
                         List<String> timelies = new ArrayList<>();
-                        timelies.add(profile.hasDaily() ? "**Daily** is available." : "**Daily** is available in " + profile.timeUntilDaily());
-                        timelies.add(profile.hasWeekly() ? "**Weekly** is available." : "**Weekly** is available in " + profile.timeUntilWeekly());
+                        timelies.add(profile.canCollectDaily() ? "**Daily** is available." : "**Daily** is available in " + profile.timeUntilDaily());
+                        timelies.add(profile.canCollectWeekly() ? "**Weekly** is available." : "**Weekly** is available in " + profile.timeUntilWeekly());
                         e.addField("Timelies", String.join("\n", timelies), true);
                         // Voting
                         if (!profile.hasVoted())
                             e.addField("Voting", "Get free rewards for voting!\nhttps://top.gg/bot/473350175000363018/vote", false);
                     });
-
-                    return result;
                 }
             },
     DESCRIPTION("description", "Update your profile description.")
@@ -101,9 +95,7 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Gacha gacha = call.getGacha();
-                    User user = call.getUser();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = call.getProfile();
 
                     if (!call.hasArguments())
                     {
@@ -121,7 +113,7 @@ public enum Command
                         return Replies.success("Your profile description has been cleared.");
                     }
 
-                    String description = call.getArgumentsRaw();
+                    String description = call.getRawArguments();
                     if (description.length() > MAX_LENGTH)
                         return Replies.failure("Your profile description can't be longer than **" + MAX_LENGTH + "** characters.");
 
@@ -136,9 +128,7 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    User user = call.getUser();
-                    Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = call.getProfile();
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
@@ -161,7 +151,7 @@ public enum Command
                             return Replies.success("Your favorite card has been cleared.");
                         }
 
-                        ProfileCard card = profile.searchCard(call.getArgumentsRaw());
+                        ProfileCard card = profile.findOneCard(call.getRawArguments());
                         if (card == null)
                             return Replies.failure("You either don't have that card, or it doesn't exist.");
 
@@ -169,7 +159,7 @@ public enum Command
                         profile.markForSave();
 
                         return Replies.card(card, "Your favorite card has been set to **" + card.getName() + "**"
-                                + (card.getCard().hasVariant() ? " " + card.getCard().getVariant() : "") + ".", null);
+                                + (card.hasVariant() ? " " + card.getVariant() : "") + ".", null);
                     }
                     catch (IOException err)
                     {
@@ -183,15 +173,13 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Gacha gacha = call.getGacha();
-                    User user = call.getUser();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = call.getProfile();
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
 
                     // Find the card by ID or name
-                    ProfileCard card = profile.searchCard(call.getArgumentsRaw());
+                    ProfileCard card = profile.findOneCard(call.getRawArguments());
                     if (card == null)
                         return Replies.failure("You either don't have that card, or it doesn't exist.");
 
@@ -211,10 +199,9 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    MessageChannel channel = call.getChannel();
                     User user = call.getUser();
-                    Gacha gacha = call.getGacha();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Core core = call.getCore();
+                    Profile profile = core.getProfiles().get(user);
 
                     if (!profile.hasCards())
                         return Replies.failure("You don't have any cards.");
@@ -275,18 +262,17 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Gacha gacha = call.getGacha();
+                    Core core = call.getCore();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfiles().get(user);
-                    Banner banner = gacha.getBanners().get("SEKAI"); // TODO Add selection when more banners are available
+                    Profile profile = core.getProfiles().get(user);
 
-                    if (profile.getResources().getCrystals() < banner.getCost())
-                        return Replies.failure("You need **" + Util.crystals(banner.getCost()) + "** to pull from **" + banner.getName() + "**.");
+                    if (profile.getResources().getCrystals() < 1000)
+                        return Replies.failure("You need **" + Util.crystals(1000) + "** to pull a card.");
 
-                    Card card = banner.pullCard(profile);
+                    Card card = core.getCards().pullCard();
                     ProfileCard profileCard;
                     String message = null;
-                    profile.getResources().subCrystals(banner.getCost());
+                    profile.getResources().subCrystals(1000);
                     boolean repull;
 
                     if (profile.hasCard(card))
@@ -305,12 +291,9 @@ public enum Command
 
                     try
                     {
-                        Reply reply = Replies.card(profileCard, "Pulled **" + card.getName() + "** from **" + banner.getName() + "**.", message);
-                        String pityT4 = (10 - profile.getBannerPityT4(banner.getId())) + " until 4*";
-                        String pityT5 = (70 - profile.getBannerPityT5(banner.getId())) + " until 5*";
+                        Reply reply = Replies.card(profileCard, "Pulled **" + card.getName() + "**.", message);
                         reply.setEmbed(reply.getEmbed().andThen(embed ->
                         {
-                            embed.addField("Pity", pityT4 + "\n" + pityT5, true);
                             if (repull)
                             {
                                 int violetRunes = 25 * card.getTier();
@@ -337,11 +320,11 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Gacha gacha = call.getGacha();
+                    Core core = call.getCore();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = core.getProfiles().get(user);
 
-                    if (!profile.hasDaily())
+                    if (!profile.canCollectDaily())
                         return Replies.failure("Your **Daily** is available in " + profile.timeUntilDaily() + ".");
 
                     int amount = Constants.TIMELY_DAY;
@@ -357,11 +340,11 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Gacha gacha = call.getGacha();
+                    Core core = call.getCore();
                     User user = call.getUser();
-                    Profile profile = gacha.getProfiles().get(user);
+                    Profile profile = core.getProfiles().get(user);
 
-                    if (!profile.hasWeekly())
+                    if (!profile.canCollectWeekly())
                         return Replies.failure("Your **Weekly** is available in " + profile.timeUntilWeekly() + ".");
 
                     int amount = Constants.TIMELY_WEEK;
@@ -380,7 +363,7 @@ public enum Command
                     if (!call.getUser().getId().equals(Snowflake.of(92296992004272128L)))
                         return Replies.failure("No");
 
-                    call.getGacha().getProfiles().allAsList().forEach(p ->
+                    call.getCore().getProfiles().allAsList().forEach(p ->
                     {
                         p.getResources().addCrystals(25000);
                         p.markForSave();
@@ -388,15 +371,15 @@ public enum Command
 
                     return Replies.success("Yes");
                     //User user = call.getUser();
-                    //User target = call.getGateway().getUserById(Snowflake.of(call.getArgument(0))).block();
-                    //Profile targetData = call.getGacha().getProfile(target);
+                    //User target = call.getGateway().userById(Snowflake.of(call.getArgument(0))).block();
+                    //Profile targetData = call.getCore().profile(target);
                     //int crystals = Integer.parseInt(call.getArgument(1));
 //
                     //targetData.getResources().addCrystals(crystals);
-                    //call.getGacha().getMongo().saveProfile(targetData);
+                    //call.getCore().getMongo().saveProfile(targetData);
 //
                     //return new Reply(call)
-                    //        .setEmbed(e -> e
+                    //        .embed(e -> e
                     //                .setDescription(Util.formatUsername(target) + " has received **" + Util.comma(crystals) + "** crystals."));
                 }
             },
@@ -406,7 +389,7 @@ public enum Command
     //            public Reply execute(CommandCall call)
     //            {
     //                GatewayDiscordClient client = call.getGateway();
-    //                MessageChannel channel = client.getChannelById(Snowflake.of(856984021078769695L)).cast(MessageChannel.class).block();
+    //                MessageChannel channel = client.channelById(Snowflake.of(856984021078769695L)).cast(MessageChannel.class).block();
     //                List<Message> hearts = channel
     //                        .getMessagesAfter(Snowflake.of(857010045081878598L))
     //                        .collectList().block();
@@ -417,7 +400,7 @@ public enum Command
     //                            User submitter = m.getAuthor().get();
     //                            int count = m.getReactions().isEmpty() ? 0 : m.getReactions().stream().findFirst().get().getCount();
 
-    //                            System.out.println(submitter.getUsername() + "#" + submitter.getDiscriminator() + " : " + (count - 1) + " votes : "
+    //                            System.out.println(submitter.username() + "#" + submitter.getDiscriminator() + " : " + (count - 1) + " votes : "
     //                                    + "https://discord.com/channels/642803460512940052/856984021078769695/" + m.getId().asString());
     //                        });
     //                return Replies.success("check console");
@@ -428,8 +411,8 @@ public enum Command
                 @Override
                 public Reply execute(CommandCall call)
                 {
-                    Profile profile = call.getGacha().getProfiles().get(call.getUser());
-                    Card card = call.getGacha().getCards().findOne(call.getArgumentsRaw());
+                    Profile profile = call.getCore().getProfiles().get(call.getUser());
+                    Card card = call.getCore().getCards().findOne(call.getRawArguments());
                     try
                     {
                         return Replies.card(ProfileCard.create(profile, card), null, null);
@@ -447,8 +430,8 @@ public enum Command
     //            public Reply execute(CommandCall call)
     //            {
     //                User user = call.getUser();
-    //                Gacha gacha = call.getGacha();
-    //                Profile profile = gacha.getProfiles().get(user);
+    //                Gacha gacha = call.getCore();
+    //                Profile profile = gacha.profiles().get(user);
 //
     //                if (!profile.hasCards())
     //                    return Replies.failure("You don't have any cards.");
@@ -457,7 +440,7 @@ public enum Command
 //
     //                try
     //                {
-    //                    ProfileCard card = profile.searchCard(call.getArgumentsRaw());
+    //                    ProfileCard card = profile.searchCard(call.getRawArguments());
     //                    if (card == null)
     //                        return Replies.failure("You either don't have that card, or it doesn't exist.");
     //                    if (!card.hasAltImage())
@@ -468,7 +451,7 @@ public enum Command
     //                    profile.markForSave();
 //
     //                    return Replies.card(card, "Flipped over **" + card.getName() + "**"
-    //                            + (card.getCard().hasVariant() ? " - " + card.getCard().getVariant() : "") + ".", null);
+    //                            + (card.hasVariant() ? " - " + card.getVariant() : "") + ".", null);
     //                }
     //                catch (IOException error)
     //                {
@@ -517,7 +500,7 @@ public enum Command
         return execute(call);
     }
 
-    public ApplicationCommandRequest app()
+    public ApplicationCommandRequest asAppCommand()
     {
         return ApplicationCommandRequest.builder()
                 .name(getName())

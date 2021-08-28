@@ -1,5 +1,6 @@
 package xyz.oopsjpeg.gacha;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -7,6 +8,7 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.GuildChannel;
+import xyz.oopsjpeg.gacha.object.user.Profile;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -131,27 +133,31 @@ public class Util
         return user.getUsername() + "#" + user.getDiscriminator();
     }
 
-    public static discord4j.rest.util.Color getColor(User user, Channel channel)
+    public static discord4j.rest.util.Color getDisplayColor(Profile profile, Channel channel)
     {
-        GatewayDiscordClient client = user.getClient();
+        return getDisplayColor(profile.getUser(), channel);
+    }
+
+    public static discord4j.rest.util.Color getDisplayColor(User user, Channel channel)
+    {
         // Check if the channel is in a guild
         if (channel instanceof GuildChannel)
         {
-            Guild guild = ((GuildChannel) channel).getGuild().block();
-            Member member = user.asMember(guild.getId()).block();
-            return getColor(member);
+            Snowflake guildId = ((GuildChannel) channel).getGuildId();
+            Member member = user.asMember(guildId).block();
+            return getDisplayColor(member);
         }
 
         return discord4j.rest.util.Color.LIGHT_GRAY;
     }
 
-    public static discord4j.rest.util.Color getColor(Member member)
+    public static discord4j.rest.util.Color getDisplayColor(Member member)
     {
         discord4j.rest.util.Color color = discord4j.rest.util.Color.LIGHT_GRAY;
 
         // Get top-most role with a color
         Role topRole = member.getRoles()
-                .filter(r -> !r.getColor().equals(discord4j.rest.util.Color.of(0)))
+                .filter(r -> !r.getColor().equals(Role.DEFAULT_COLOR))
                 .sort(Comparator.comparingInt(Role::getRawPosition))
                 .blockLast();
 

@@ -45,10 +45,11 @@ public class Stats
 
     public Stats multiply(float f)
     {
-        health *= 1 + f;
-        defense *= 1 + f;
-        attack *= 1 + f;
-        magic *= 1 + f;
-        return this;
+        Stats stats = new Stats(health, defense, attack, magic);
+        stats.health *= 1 + f;
+        stats.defense *= 1 + f;
+        stats.attack *= 1 + f;
+        stats.magic *= 1 + f;
+        return stats;
     }
 }

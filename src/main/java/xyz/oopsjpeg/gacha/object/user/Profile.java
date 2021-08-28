@@ -1,8 +1,9 @@
 package xyz.oopsjpeg.gacha.object.user;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.User;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
 import xyz.oopsjpeg.gacha.ProfileManager;
 import xyz.oopsjpeg.gacha.Util;
 import xyz.oopsjpeg.gacha.object.Card;
@@ -35,6 +36,16 @@ public class Profile implements SavedObject
         return new Profile(manager, data);
     }
 
+    public Core getCore()
+    {
+        return manager.getCore();
+    }
+
+    public GatewayDiscordClient getGateway()
+    {
+        return getCore().getGateway();
+    }
+
     public ProfileManager getManager()
     {
         return manager;
@@ -52,7 +63,17 @@ public class Profile implements SavedObject
 
     public User getUser()
     {
-        return manager.getGacha().getGateway().getUserById(Snowflake.of(getId())).block();
+        return getGateway().getUserById(Snowflake.of(getId())).block();
+    }
+
+    public String getUsername()
+    {
+        return getUser().getUsername();
+    }
+
+    public String getAvatarUrl()
+    {
+        return getUser().getAvatarUrl();
     }
 
     public Resources getResources()
@@ -74,7 +95,7 @@ public class Profile implements SavedObject
                 .collect(Collectors.toList());
     }
 
-    public Map<ProfileCard, Integer> searchCards(String query)
+    public Map<ProfileCard, Integer> findManyCards(String query)
     {
         Map<ProfileCard, Integer> results = new HashMap<>();
         String[] split = query.toLowerCase().split(" ");
@@ -91,7 +112,7 @@ public class Profile implements SavedObject
                 if (card.getName().toLowerCase().contains(term))
                     matches++;
                 // Variant
-                if (card.getCard().hasVariant() && card.getCard().getVariant().toLowerCase().contains(term))
+                if (card.hasVariant() && card.getVariant().toLowerCase().contains(term))
                     matches++;
 
                 if (matches > 0)
@@ -101,9 +122,9 @@ public class Profile implements SavedObject
         return results;
     }
 
-    public ProfileCard searchCard(String query)
+    public ProfileCard findOneCard(String query)
     {
-        return searchCards(query).entrySet().stream()
+        return findManyCards(query).entrySet().stream()
                 .max(Comparator.comparingInt(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
                 .orElse(null);
@@ -111,7 +132,7 @@ public class Profile implements SavedObject
 
     public boolean hasCards()
     {
-        return !getCards().isEmpty();
+        return data.cards.isEmpty();
     }
 
     public ProfileCard getCard(Card card)
@@ -154,7 +175,7 @@ public class Profile implements SavedObject
         data.dailyDate = dailyDate.toString();
     }
 
-    public boolean hasDaily()
+    public boolean canCollectDaily()
     {
         return data.dailyDate == null || LocalDateTime.now().isAfter(getDailyDate().plusDays(1));
     }
@@ -179,7 +200,7 @@ public class Profile implements SavedObject
         return Util.timeDiff(LocalDateTime.now(), getWeeklyDate().plusWeeks(1));
     }
 
-    public boolean hasWeekly()
+    public boolean canCollectWeekly()
     {
         return data.weeklyDate == null || LocalDateTime.now().isAfter(getWeeklyDate().plusWeeks(1));
     }
@@ -226,47 +247,9 @@ public class Profile implements SavedObject
 
     public int getTier()
     {
-        return getCards().isEmpty() ? 1 : Collections.max(getCards().stream()
+        return data.cards.isEmpty() ? 1 : Collections.max(getCards().stream()
                 .map(ProfileCard::getTier)
                 .collect(Collectors.toList()));
-    }
-
-    public int getBannerPityT5(String id)
-    {
-        return data.bannerPityT5.getOrDefault(id, 0);
-    }
-
-    public void resetBannerPityT5(String id)
-    {
-        data.bannerPityT5.put(id, 0);
-    }
-
-    public boolean pityBannerT5(String id)
-    {
-        if (!data.bannerPityT5.containsKey(id))
-            data.bannerPityT5.put(id, 1);
-        else
-            data.bannerPityT5.put(id, getBannerPityT5(id) + 1);
-        return getBannerPityT5(id) >= 70;
-    }
-
-    public int getBannerPityT4(String id)
-    {
-        return data.bannerPityT4.getOrDefault(id, 0);
-    }
-
-    public void resetBannerPityT4(String id)
-    {
-        data.bannerPityT4.put(id, 0);
-    }
-
-    public boolean pityBannerT4(String id)
-    {
-        if (!data.bannerPityT4.containsKey(id))
-            data.bannerPityT4.put(id, 1);
-        else
-            data.bannerPityT4.put(id, getBannerPityT4(id) + 1);
-        return getBannerPityT4(id) >= 10;
     }
 
     public LocalDateTime getVoteDate()
@@ -281,7 +264,7 @@ public class Profile implements SavedObject
 
     public boolean hasVoted()
     {
-        return getVoteDate() != null && LocalDateTime.now().isBefore(getVoteDate().plusHours(12));
+        return data.voteDate != null && LocalDateTime.now().isBefore(getVoteDate().plusHours(12));
     }
 
     @Override

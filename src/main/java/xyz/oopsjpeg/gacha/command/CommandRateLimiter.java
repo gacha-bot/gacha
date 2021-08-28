@@ -53,7 +53,7 @@ public class CommandRateLimiter
             warned = false;
         }
 
-        public boolean isCycleComplete()
+        public boolean cycleCompleted()
         {
             return time == null || LocalDateTime.now().isAfter(time.plusSeconds(CYCLE_DURATION));
         }
@@ -61,7 +61,7 @@ public class CommandRateLimiter
         public boolean issueCommand()
         {
             // If there's no last cycle or X seconds have past since it
-            if (isCycleComplete()) cycle();
+            if (cycleCompleted()) cycle();
 
             // If less than X commands have been issued this cycle
             if (commands < COMMANDS_PER_CYCLE)

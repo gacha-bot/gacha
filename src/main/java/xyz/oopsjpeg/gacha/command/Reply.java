@@ -24,7 +24,7 @@ public class Reply
     public Message create(User user, MessageChannel channel, Message reference)
     {
         Consumer<LegacyEmbedCreateSpec> userAsAuthor = e -> e
-                .setColor(Util.getColor(user, channel))
+                .setColor(Util.getDisplayColor(user, channel))
                 .setAuthor(Util.formatUsername(user), null, user.getAvatarUrl());
 
         Consumer<LegacyMessageCreateSpec> spec = m -> m.setContent(getContent());
@@ -44,7 +44,7 @@ public class Reply
     public void edit(Message original, User user, MessageChannel channel)
     {
         Consumer<LegacyEmbedCreateSpec> userAsAuthor = e -> e
-                .setColor(Util.getColor(user, channel))
+                .setColor(Util.getDisplayColor(user, channel))
                 .setAuthor(Util.formatUsername(user), null, user.getAvatarUrl());
 
         Consumer<LegacyMessageEditSpec> spec = m -> m.setContent(getContent());

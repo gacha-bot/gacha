@@ -1,7 +1,8 @@
 package xyz.oopsjpeg.gacha.object;
 
 import xyz.oopsjpeg.gacha.CardManager;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
+import xyz.oopsjpeg.gacha.Settings;
 import xyz.oopsjpeg.gacha.Util;
 import xyz.oopsjpeg.gacha.object.data.CardData;
 import xyz.oopsjpeg.gacha.util.MultiplyComposite;
@@ -30,9 +31,14 @@ public class Card
         return manager;
     }
 
-    public Gacha getGacha()
+    public Core getCore()
     {
-        return manager.getGacha();
+        return manager.getCore();
+    }
+
+    public Settings getSettings()
+    {
+        return manager.getSettings();
     }
 
     public CardData getData()
@@ -67,7 +73,7 @@ public class Card
 
     public BufferedImage getImage() throws IOException
     {
-        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "cards/images/" + getImageRaw() + ".png"));
+        return ImageIO.read(new URL(getSettings().getDataUrl() + "cards/images/" + getImageRaw() + ".png"));
     }
 
     public String getImageRaw()
@@ -77,7 +83,7 @@ public class Card
 
     public Series getSeries()
     {
-        return getGacha().getAllSeries().get(data.series);
+        return getCore().getSeries().get(data.series);
     }
 
     public String getSource()
@@ -107,7 +113,7 @@ public class Card
 
     public BufferedImage getFrame() throws IOException
     {
-        return ImageIO.read(new URL(getGacha().getSettings().getDataUrl() + "frames/" + getFrameRaw() + ".png"));
+        return ImageIO.read(new URL(getSettings().getDataUrl() + "frames/" + getFrameRaw() + ".png"));
     }
 
     public String getFrameRaw()
@@ -124,26 +130,6 @@ public class Card
     {
         return data.frameColor;
     }
-
-    //public Color getAltFrameColor()
-    //{
-    //    return getAltFrameColorRaw() != null ? Util.stringToColor(getAltFrameColorRaw()) : Color.BLACK;
-    //}
-
-    //public String getAltFrameColorRaw()
-    //{
-    //    return data.frameColorFlip;
-    //}
-
-    //public String getBorder()
-    //{
-    //    return data.border;
-    //}
-
-    //public boolean hasBorder()
-    //{
-    //    return getBorder() != null;
-    //}
 
     public Color getBorderColor()
     {
@@ -255,6 +241,6 @@ public class Card
     @Override
     public String toString()
     {
-        return "Card[id=" + getId() + ", name=" + getName() + "]";
+        return "Card[id=" + getTier() + ", name=" + getName() + "]";
     }
 }

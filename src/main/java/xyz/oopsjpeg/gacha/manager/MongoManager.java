@@ -12,26 +12,25 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
+import xyz.oopsjpeg.gacha.Manager;
 import xyz.oopsjpeg.gacha.object.data.ProfileData;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 
 import java.util.Collection;
-import java.util.HashMap;
 
 /**
  * Manages all MongoDB interactions.
  * Created by oopsjpeg on 2/3/2019.
  */
-public class MongoManager
+public class MongoManager implements Manager
 {
-    private final Gacha gacha;
+    private final Core core;
     private final MongoDatabase database;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public MongoManager(Gacha gacha, String conString)
+    public MongoManager(Core core, String conString)
     {
-        this.gacha = gacha;
+        this.core = core;
 
         ConnectionString connection = new ConnectionString(conString);
         // Add BSON/POJO translator
@@ -54,7 +53,7 @@ public class MongoManager
 
     public void saveProfiles(Collection<Profile> profiles)
     {
-        logger.info("Saving " + profiles.size() + " profiles");
+        getLogger().info("Saving " + profiles.size() + " profiles");
         profiles.stream().filter(Profile::isMarkedForSave).forEach(this::saveProfile);
     }
 
@@ -66,7 +65,13 @@ public class MongoManager
 
     public void saveProfile(ProfileData data)
     {
-        logger.info("Saving profile data for ID " + data.id);
+        getLogger().info("Saving profile data for ID " + data.id);
         getProfileCollection().replaceOne(Filters.eq("_id", data.id), data, new ReplaceOptions().upsert(true));
+    }
+
+    @Override
+    public Core getCore()
+    {
+        return core;
     }
 }

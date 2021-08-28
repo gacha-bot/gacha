@@ -14,44 +14,51 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SeriesManager
+public class SeriesManager implements ObjectManager<Series>
 {
-    private static final Logger logger = LoggerFactory.getLogger(SeriesManager.class);
-
-    private final Gacha gacha;
+    private final Core core;
     private final Map<String, Series> seriesMap = new HashMap<>();
 
-    public SeriesManager(Gacha gacha)
+    public SeriesManager(Core core)
     {
-        this.gacha = gacha;
+        this.core = core;
     }
 
-    public Gacha getGacha()
+    @Override
+    public Core getCore()
     {
-        return gacha;
+        return core;
     }
 
+    @Override
     public Series get(String id)
     {
         return seriesMap.getOrDefault(id, null);
     }
 
+    @Override
+    public Map<String, Series> all()
+    {
+        return seriesMap;
+    }
+
+    @Override
     public void fetch() throws IOException
     {
         seriesMap.clear();
 
-        URL url = new URL(gacha.getSettings().getDataUrl() + "series.json");
+        URL url = new URL(core.getSettings().getDataUrl() + "series.json");
         URLConnection con = url.openConnection();
 
         try (InputStreamReader isr = new InputStreamReader(con.getInputStream()))
         {
-            JsonObject json = Gacha.GSON.fromJson(isr, JsonObject.class);
+            JsonObject json = Core.GSON.fromJson(isr, JsonObject.class);
             for (Map.Entry<String, JsonElement> e : json.entrySet())
             {
-                SeriesData data = Gacha.GSON.fromJson(e.getValue(), SeriesData.class);
+                SeriesData data = Core.GSON.fromJson(e.getValue(), SeriesData.class);
                 seriesMap.put(e.getKey(), new Series(this, data, e.getKey()));
             }
-            logger.info("Fetched " + seriesMap.size() + " series");
+            getLogger().info("Fetched " + seriesMap.size() + " series");
         }
     }
 }

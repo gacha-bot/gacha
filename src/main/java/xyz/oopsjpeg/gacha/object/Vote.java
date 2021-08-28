@@ -1,19 +1,25 @@
 package xyz.oopsjpeg.gacha.object;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.User;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
 import xyz.oopsjpeg.gacha.object.data.VoteData;
 
 public class Vote
 {
-    private final Gacha gacha;
+    private final Core core;
     private final VoteData data;
 
-    public Vote(Gacha gacha, VoteData data)
+    public Vote(Core core, VoteData data)
     {
-        this.gacha = gacha;
+        this.core = core;
         this.data = data;
+    }
+
+    public GatewayDiscordClient getGateway()
+    {
+        return core.getGateway();
     }
 
     public VoteData getData()
@@ -33,7 +39,7 @@ public class Vote
 
     public User getUser()
     {
-        return gacha.getGateway().getUserById(Snowflake.of(getUserId())).block();
+        return getGateway().getUserById(Snowflake.of(getUserId())).block();
     }
 
     public String getType()

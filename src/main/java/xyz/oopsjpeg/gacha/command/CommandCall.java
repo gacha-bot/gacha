@@ -10,7 +10,8 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
+import xyz.oopsjpeg.gacha.object.user.Profile;
 
 import java.util.Arrays;
 
@@ -37,7 +38,6 @@ public class CommandCall
 
     public static CommandCall of(CommandManager manager, Message message)
     {
-        Gacha gacha = manager.getGacha();
         User user = message.getAuthor().orElse(null);
 
         if (user != null && !user.isBot())
@@ -84,14 +84,14 @@ public class CommandCall
         return manager;
     }
 
-    public Gacha getGacha()
+    public Core getCore()
     {
-        return getManager().getGacha();
+        return getManager().getCore();
     }
 
     public GatewayDiscordClient getGateway()
     {
-        return getGacha().getGateway();
+        return getManager().getGateway();
     }
 
     public String getAlias()
@@ -119,7 +119,7 @@ public class CommandCall
         return getArgument(getArguments().length - 1);
     }
 
-    public String getArgumentsRaw()
+    public String getRawArguments()
     {
         return String.join(" ", getArguments());
     }
@@ -137,6 +137,11 @@ public class CommandCall
     public User getUser()
     {
         return getGateway().getUserById(userId).block();
+    }
+
+    public Profile getProfile()
+    {
+        return getCore().getProfiles().get(userId.asString());
     }
 
     public Member getMember()

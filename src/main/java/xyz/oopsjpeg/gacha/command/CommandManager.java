@@ -4,62 +4,29 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import xyz.oopsjpeg.gacha.Gacha;
+import xyz.oopsjpeg.gacha.Core;
+import xyz.oopsjpeg.gacha.Manager;
+import xyz.oopsjpeg.gacha.ObjectManager;
 
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by oopsjpeg on 2/28/2019.
- */
-public class CommandManager
+public class CommandManager implements Manager
 {
-    private final Gacha gacha;
+    private final Core core;
     private final String prefix;
     private final List<Command> commands;
     private final CommandRateLimiter rateLimiter = new CommandRateLimiter();
 
-    public CommandManager(Gacha gacha, String prefix, Command... commands)
+    public CommandManager(Core core, String prefix, Command... commands)
     {
-        this.gacha = gacha;
+        this.core = core;
         this.prefix = prefix;
         this.commands = Arrays.asList(commands);
 
-        gacha.getGateway().on(MessageCreateEvent.class).subscribe(this::onMessageCreate);
-        //gacha.getGateway().on(ButtonInteractEvent.class).subscribe(this::onButtonInteract);
-        // gacha.getGateway().on(SlashCommandEvent.class).subscribe(this::onSlashCommand);
+        getGateway().on(MessageCreateEvent.class).subscribe(this::onMessageCreate);
+        //getGateway().on(SlashCommandEvent.class).subscribe(this::onSlashCommand);
     }
-
-    //private void onButtonInteract(ButtonInteractEvent ev)
-    //{
-    //    Message message = ev.getMessage();
-    //    MessageChannel channel = message.getChannel().block();
-    //    String[] customId = ev.getCustomId().split("/");
-    //    String command = customId[0];
-    //    User user = gacha.getGateway().getUserById(Snowflake.of(customId[1])).block();
-//
-    //    if (command.equals("pull"))
-    //    {
-    //        Banner type = Banner.valueOf(customId[2]);
-//
-    //        CommandCall call = new CommandCall(this, Command.PULL.getName(), new String[]{type.getName()},
-    //                message.getGuild().blockOptional().orElse(null),
-    //                message.getChannel().blockOptional().orElse(null),
-    //                user);
-    //        CommandResult result = executeCommand(call, Command.PULL);
-    //
-    //        Consumer<InteractionApplicationCommandCallbackSpec> spec = m -> m
-    //                .setContent(result.getContent())
-    //                .addEmbed(result.getEmbed());
-    //        if (result.getComponents() != null)
-    //            spec = spec.andThen(m -> m.setComponents(result.getComponents()));
-    //        if (result.getFile() != null)
-    //            spec = spec.andThen(m -> m.addFile(result.getFile().getT1(), result.getFile().getT2()));
-//
-    //        channel.createMessage(spec).block();
-    //    }
-//
-    //}
 
     private void onMessageCreate(MessageCreateEvent ev)
     {
@@ -86,14 +53,8 @@ public class CommandManager
 
         if (reply == null) return;
 
-        Message response = reply.create(user, channel, message);
+        reply.create(user, channel, message);
     }
-
-
-
-    /*
-    Interaction responses don't allow files.
-     */
 
     // private void onSlashCommand(SlashCommandEvent ev)
     // {
@@ -125,11 +86,6 @@ public class CommandManager
         return prefix + command.getName();
     }
 
-    public Gacha getGacha()
-    {
-        return gacha;
-    }
-
     public String getPrefix()
     {
         return prefix;
@@ -138,5 +94,11 @@ public class CommandManager
     public List<Command> getCommands()
     {
         return commands;
+    }
+
+    @Override
+    public Core getCore()
+    {
+        return core;
     }
 }

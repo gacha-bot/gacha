@@ -2,33 +2,28 @@ package xyz.oopsjpeg.gacha;
 
 import com.mongodb.client.MongoCollection;
 import discord4j.core.object.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xyz.oopsjpeg.gacha.object.data.ProfileData;
 import xyz.oopsjpeg.gacha.object.user.Profile;
 import xyz.oopsjpeg.gacha.util.Constants;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class ProfileManager
+public class ProfileManager implements ObjectManager<Profile>
 {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    private final Gacha gacha;
+    private final Core core;
     private final Map<String, Profile> profileMap = new HashMap<>();
 
-    public ProfileManager(Gacha gacha)
+    public ProfileManager(Core core)
     {
-        this.gacha = gacha;
+        this.core = core;
     }
 
-    public Gacha getGacha()
+    @Override
+    public Core getCore()
     {
-        return gacha;
+        return core;
     }
 
     private Profile register(String id)
@@ -40,6 +35,7 @@ public class ProfileManager
         return profile;
     }
 
+    @Override
     public Profile get(String id)
     {
         if (!profileMap.containsKey(id))
@@ -52,36 +48,23 @@ public class ProfileManager
         return get(user.getId().asString());
     }
 
-    public boolean has(String id)
-    {
-        return profileMap.containsKey(id);
-    }
-
-    public boolean has(User user)
-    {
-        return has(user.getId().asString());
-    }
-
+    @Override
     public Map<String, Profile> all()
     {
         return profileMap;
     }
 
-    public List<Profile> allAsList()
-    {
-        return new ArrayList<>(profileMap.values());
-    }
-
+    @Override
     public void fetch() throws IOException
     {
         profileMap.clear();
-        MongoCollection<ProfileData> collection = gacha.getMongo().getProfileCollection();
+        MongoCollection<ProfileData> collection = core.getMongo().getProfileCollection();
         collection.find().forEach(data ->
         {
             Profile profile = new Profile(this, data);
-            logger.info("Fetched profile data for ID " + data.id);
+            getLogger().info("Fetched profile data for ID " + data.id);
             profileMap.put(profile.getId(), profile);
         });
-        logger.info("Fetched " + profileMap.size() + " profiles");
+        getLogger().info("Fetched " + profileMap.size() + " profiles");
     }
 }

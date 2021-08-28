@@ -15,7 +15,5 @@ public class ProfileData
     public String weeklyDate;
     public String description;
     public String favoriteCardId;
-    public Map<String, Integer> bannerPityT5 = new HashMap<>();
-    public Map<String, Integer> bannerPityT4 = new HashMap<>();
     public String voteDate;
 }

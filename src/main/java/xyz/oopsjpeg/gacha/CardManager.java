@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.oopsjpeg.gacha.object.Card;
 import xyz.oopsjpeg.gacha.object.data.CardData;
+import xyz.oopsjpeg.gacha.object.user.Profile;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,24 +13,23 @@ import java.net.URLConnection;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CardManager
+public class CardManager implements ObjectManager<Card>
 {
-    private static final Logger logger = LoggerFactory.getLogger(CardManager.class);
-
-    private final Gacha gacha;
+    private final Core core;
     private final Map<String, Card> cardMap = new HashMap<>();
 
-    public CardManager(Gacha gacha)
+    public CardManager(Core core)
     {
-        this.gacha = gacha;
+        this.core = core;
     }
 
+    @Override
     public Card get(String id)
     {
         return cardMap.get(id);
     }
 
-    public List<Card> getByTier(int t)
+    public List<Card> findByTier(int t)
     {
         return cardMap.values().stream()
                 .filter(c -> c.getTier() == t)
@@ -71,38 +71,57 @@ public class CardManager
                 .orElse(null);
     }
 
-    public List<Card> allAsList()
+    @Override
+    public Map<String, Card> all()
     {
-        return new ArrayList<>(cardMap.values());
+        return cardMap;
     }
 
-    public int total()
+    public Card pullCard()
     {
-        return cardMap.size();
+        final List<Card> pool = new ArrayList<>();
+        final float f = Util.RANDOM.nextFloat();
+
+        if (f <= 0.012)
+            pool.addAll(findByTier(5));
+        else if (f <= 0.04)
+            pool.addAll(findByTier(4));
+        else if (f <= 0.12)
+            pool.addAll(findByTier(3));
+        else if (f <= 0.32)
+            pool.addAll(findByTier(2));
+        else
+            pool.addAll(findByTier(1));
+
+        if (pool.isEmpty()) return null;
+
+        return pool.get(Util.RANDOM.nextInt(pool.size()));
     }
 
+    @Override
     public void fetch() throws IOException
     {
         cardMap.clear();
 
-        URL url = new URL(gacha.getSettings().getDataUrl() + "cards.json");
+        URL url = new URL(core.getSettings().getDataUrl() + "cards.json");
         URLConnection con = url.openConnection();
 
         try (InputStreamReader isr = new InputStreamReader(con.getInputStream()))
         {
-            CardData[] data = Gacha.GSON.fromJson(isr, CardData[].class);
+            CardData[] data = Core.GSON.fromJson(isr, CardData[].class);
             for (int i = 0; i < data.length; i++)
             {
                 String id = String.valueOf(i);
                 cardMap.put(id, new Card(this, data[i], id));
             }
 
-            logger.info("Fetched " + cardMap.size() + " cards");
+            getLogger().info("Fetched " + cardMap.size() + " cards");
         }
     }
 
-    public Gacha getGacha()
+    @Override
+    public Core getCore()
     {
-        return gacha;
+        return core;
     }
 }
