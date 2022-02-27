@@ -7,7 +7,6 @@ out/
 modules/
 *.iml
 
-# Gacha
-gacha.properties
-*.stable
-*.beta
+# Bot Settings
+config.json
+emotes.json
