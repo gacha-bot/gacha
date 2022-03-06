@@ -1,5 +1,8 @@
 package me.gacha.gacha.command;
 
+import me.gacha.gacha.command.impl.CreateRuneCmd;
+import me.gacha.gacha.command.impl.CreateTeamCmd;
+import me.gacha.gacha.command.impl.CreateUnitCmd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +20,14 @@ public class Commands
         cmdMap = new HashMap<>();
 
         log.info("Adding commands");
+        add(new CreateUnitCmd());
+        add(new CreateRuneCmd());
+        add(new CreateTeamCmd());
     }
 
     private static void add(Cmd cmd)
     {
+        log.info("Adding command of type " + cmd.getClass().getSimpleName());
         cmdMap.put(cmd.getName(), cmd);
     }
 

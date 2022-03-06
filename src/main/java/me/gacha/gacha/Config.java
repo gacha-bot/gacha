@@ -11,6 +11,8 @@ public class Config
 
     private String discordToken;
     private String prefix;
+    private String mongoConnectionString;
+    private String mongoDatabaseName;
 
     public static void init() throws IOException
     {
@@ -31,5 +33,15 @@ public class Config
     public String getPrefix()
     {
         return prefix;
+    }
+
+    public String getMongoConnectionString()
+    {
+        return mongoConnectionString;
+    }
+
+    public String getMongoDatabaseName()
+    {
+        return mongoDatabaseName;
     }
 }

@@ -7,6 +7,11 @@ public class Replies
 {
     public static MessageCreateMono failure(MessageChannel channel, String content)
     {
-        return channel.createMessage(Emotes.X + " " + content);
+        return channel.createMessage(Emotes.FAILURE + " " + content);
+    }
+
+    public static MessageCreateMono success(MessageChannel channel, String content)
+    {
+        return channel.createMessage(Emotes.SUCCESS + " " + content);
     }
 }
