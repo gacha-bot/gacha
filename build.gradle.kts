@@ -4,6 +4,7 @@
 
 plugins {
     java
+    application
 }
 
 repositories {
@@ -25,6 +26,7 @@ version = "1.0"
 description = "Gacha"
 java.sourceCompatibility = JavaVersion.VERSION_17
 java.targetCompatibility = JavaVersion.VERSION_17
+application.mainClass.set("me.gacha.gacha.Core")
 
 tasks.withType<JavaCompile>() {
     options.encoding = "UTF-8"
